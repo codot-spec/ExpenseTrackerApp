@@ -11,6 +11,6 @@ async function SignIn(event){
         alert(response.data.message)
     }
     catch(err){
-      document.body.innerHTML += `<div style="color:red;">${err.message} <div> `
+      document.body.innerHTML += `<div style="color:red;"> ${err.message} <div> `
     }
 }
