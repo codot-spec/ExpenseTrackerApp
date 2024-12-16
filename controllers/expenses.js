@@ -7,7 +7,7 @@ exports.addExpense = async (req, res, next ) => {
 }
 
   try {
-    const newExpense = await Expense.create({ amount, description, category });
+    const newExpense = await Expense.create({ amount, description, category, userId: req.user.id});
     res.status(201).json(newExpense);
   } catch (error) {
     console.error(error);
@@ -17,7 +17,7 @@ exports.addExpense = async (req, res, next ) => {
 
 exports.getExpenses = async (req, res, next) => {
   try {
-    const expenses = await Expense.findAll();
+    const expenses = await Expense.findAll({ where : { userId: req.user.id}});
     res.status(200).json(expenses);
   } catch (error) {
     console.error(error);
@@ -31,7 +31,7 @@ exports.updateExpense = async (req, res, next) => {
   try {
     const [updatedCount] = await Expense.update(
       { amount, description, category },
-      { where: { id: expenseId } }
+      { where: { id: expenseId, userId: req.user.id } }
     );
 
     if (updatedCount === 0) {
@@ -51,7 +51,7 @@ exports.deleteExpense = async (req, res, next) => {
 
   try {
     const deletedCount = await Expense.destroy({
-      where: { id: expenseId }
+      where: { id: expenseId, userId: req.user.id}
     });
 
     if (deletedCount === 0) {

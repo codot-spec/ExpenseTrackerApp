@@ -29,7 +29,8 @@ function handleFormSubmit(event) {
   }
   
   window.addEventListener("DOMContentLoaded", () => {
-    axios.get("http://localhost:3000/expenses")
+    const token = localStorage.getItem('token');
+    axios.get("http://localhost:3000/expenses",{headers: {"Authorization" :token}})
       .then(response => {
         response.data.forEach(expense => displayExpenseOnScreen(expense));
       })
