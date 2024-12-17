@@ -28,7 +28,7 @@ exports.signup = async (req, res ) => {
 
 // Generate JWT token (with isPremium field included)
 exports.generateAccessToken = (id, name, isPremium) => {
-  return jwt.sign({ userId: id, name: name, isPremium: isPremium }, 'secretkey');
+  return jwt.sign({ userId: id, name: name, isPremium }, 'secretkey');
 };
 
 exports.login = async (req, res, next) => {
@@ -54,8 +54,7 @@ exports.login = async (req, res, next) => {
 
       return res.status(200).json({
         message: 'User login successful',
-        token: token , // Send the token to the client
-        isPremium: user.isPremium // Return the user's premium status
+        token: token // Send the token to the client
     });
     } else {
       // Incorrect password

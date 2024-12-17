@@ -6,7 +6,7 @@ async function SignIn(event){
         email: event.target.email.value,
         password: event.target.password.value,
       };
-    console.log(loginDetails);
+      console.log(loginDetails);
       const response = await  axios.post("http://localhost:3000/user/sign-in", loginDetails)
         alert(response.data.message)
         localStorage.setItem('token',response.data.token);

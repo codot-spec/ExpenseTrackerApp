@@ -14,7 +14,7 @@ const premiumFeatureRoutes = require('./routes/premiumFeature')
 
 const app = express();
 const dotenv = require('dotenv');
-//app.use(bodyParser.json());  // Use JSON for API requests
+//app.use(bodyParser.json()); 
 
 dotenv.config();
 
