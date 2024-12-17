@@ -1,6 +1,7 @@
-const User = require('../models/user');
+const User = require('../models/users');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const userController=require('./user');
 
 exports.signup = async (req, res ) => {
   try {
@@ -25,6 +26,10 @@ exports.signup = async (req, res ) => {
   }
 };
 
+// Generate JWT token (with isPremium field included)
+exports.generateAccessToken = (id, name, isPremium) => {
+  return jwt.sign({ userId: id, name: name, isPremium: isPremium }, 'secretkey');
+};
 
 exports.login = async (req, res, next) => {
   try {
@@ -45,12 +50,13 @@ exports.login = async (req, res, next) => {
       // Password matches
 
       // Generate the JWT token inside this function
-      const token = jwt.sign({ userId: user.id }, 'secretkey');  // <-- This line is the fix
+      const token = userController.generateAccessToken(user.id, user.name, user.isPremium);  // <-- This line is the fix
 
       return res.status(200).json({
         message: 'User login successful',
-        token: token // Send the token to the client
-      });
+        token: token , // Send the token to the client
+        isPremium: user.isPremium // Return the user's premium status
+    });
     } else {
       // Incorrect password
       return res.status(401).json({ message: 'User not authorized' });
@@ -60,3 +66,24 @@ exports.login = async (req, res, next) => {
     return res.status(500).json({ message: 'Server error' });
   }
 };
+
+
+// exports.getUserStatus = async (req, res) => {
+//   try {
+//     const userId = req.user.id;
+//     const user = await User.findByPk(userId);
+
+//     if (!user) {
+//       return res.status(404).json({ message: 'User not found' });
+//     }
+
+//     res.status(200).json({
+//       isPremium: user.isPremium
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// };
+
+

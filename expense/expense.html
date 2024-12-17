@@ -33,8 +33,15 @@
     <button type="submit">Add Expense</button>
   </form>
   <button id="rzp-button1">Buy Premium</button>
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <button id="leaderboardButton" style="display:none" onclick="showLeaderboard()">Show Leaderboard</button>
+  
   <ul id="expenseList"></ul>
+
+  <div id="leaderboard" style="display: none;"> 
+    <h2>Leaderboard</h2> 
+    <ul id="leaderboardList"></ul> 
+  </div> 
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.1/axios.min.js"></script>
   <script src="./expense.js"></script>
 </body>
