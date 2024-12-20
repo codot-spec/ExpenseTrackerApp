@@ -41,7 +41,7 @@ function handleFormSubmit(event) {
       var leaderBoardEle = document.getElementById('leaderboard');
       leaderBoardEle.innerHTML += '<h1>Leader Board</h1>'
       leaderboardArray.data.forEach((userDetails) =>{
-        leaderBoardEle.innerHTML += `<li>Name - ${userDetails.name} Total Expense -${userDetails.total_cost || 0}</li>`
+        leaderBoardEle.innerHTML += `<li>Name - ${userDetails.name} Total Expense -${userDetails.totalExpenses || 0}</li>`
       })
      }
      document.getElementById('message').appendChild(inputElement);
@@ -154,35 +154,35 @@ rzp1.on('payment.failed', function (response){
   }
 
 
-async function showLeaderboard() {
-  try {
-    const token = localStorage.getItem('token');
-    const response = await axios.get('http://localhost:3000/leaderboard', { 
-      headers: { "Authorization": token } 
-    });
+// async function showLeaderboard() {
+//   try {
+//     const token = localStorage.getItem('token');
+//     const response = await axios.get('http://localhost:3000/leaderboard', { 
+//       headers: { "Authorization": token } 
+//     });
 
-    if (response.status === 200) {
-      const leaderboardData = response.data; 
+//     if (response.status === 200) {
+//       const leaderboardData = response.data; 
 
-      // Clear existing leaderboard content (if any)
-      const leaderboardContainer = document.getElementById('leaderboard'); 
-      leaderboardContainer.innerHTML = '';
+//       // Clear existing leaderboard content (if any)
+//       const leaderboardContainer = document.getElementById('leaderboard'); 
+//       leaderboardContainer.innerHTML = '';
 
-      // Create and display leaderboard entries
-      leaderboardData.forEach(user => {
-        const leaderboardEntry = document.createElement('div');
-        leaderboardEntry.textContent = `${user.name}: ${user.totalExpenses}`; 
-        leaderboardContainer.appendChild(leaderboardEntry);
-      });
+//       // Create and display leaderboard entries
+//       leaderboardData.forEach(user => {
+//         const leaderboardEntry = document.createElement('div');
+//         leaderboardEntry.textContent = `${user.name}: ${user.totalExpenses}`; 
+//         leaderboardContainer.appendChild(leaderboardEntry);
+//       });
 
-      // Show the leaderboard container
-      leaderboardContainer.style.display = 'block'; 
-    } else {
-      console.error('Error fetching leaderboard data:', response); 
-      alert('Failed to fetch leaderboard data.');
-    }
-  } catch (error) {
-    console.error('Error fetching leaderboard data:', error); 
-    alert('Failed to fetch leaderboard data.');
-  }
-}
+//       // Show the leaderboard container
+//       leaderboardContainer.style.display = 'block'; 
+//     } else {
+//       console.error('Error fetching leaderboard data:', response); 
+//       alert('Failed to fetch leaderboard data.');
+//     }
+//   } catch (error) {
+//     console.error('Error fetching leaderboard data:', error); 
+//     alert('Failed to fetch leaderboard data.');
+//   }
+// }

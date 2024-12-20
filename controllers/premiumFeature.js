@@ -6,15 +6,15 @@ const e = require('express');
 const getUserLeaderBoard = async (req, res) => {
     try{
         const leaderboardofusers = await User.findAll({
-            attributes: ['id', 'name',[sequelize.fn('sum', sequelize.col('expenses.amount')), 'total_cost'] ],
-            include: [
-                {
-                    model: Expense,
-                    attributes: []
-                }
-            ],
-            group:['user.id'],
-            order:[['total_cost', 'DESC']]
+            // attributes: ['id', 'name',[sequelize.fn('sum', sequelize.col('expenses.amount')), 'total_cost'] ],
+            // include: [
+            //     {
+            //         model: Expense,
+            //         attributes: []
+            //     }
+            // ],
+            // group:['user.id'],
+            order:[['totalExpenses', 'DESC']]
 
         })
        
