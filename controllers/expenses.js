@@ -1,3 +1,6 @@
+
+
+const { Op } = require('sequelize');
 const Expense = require('../models/expenses');
 const User = require('../models/users')
 const sequelize = require('../util/database')
@@ -121,5 +124,67 @@ exports.deleteExpense = async (req, res, next) => {
     await t.rollback();  // Rollback in case of error
     console.error(error);
     res.status(500).json({ message: 'Error deleting expense', error: error.message });
+  }
+};
+
+
+exports.getExpensesByDateRange = async (req, res, next) => {
+  const { range } = req.query;  // Expect 'daily', 'weekly', or 'monthly'
+  const t = await sequelize.transaction();
+  const userId = req.user.id;
+
+  try {
+    let dateCondition;
+
+    const today = new Date();
+    
+    if (range === 'daily') {
+      // Get today's expenses
+      dateCondition = {
+        createdAt: {
+          [Op.gte]: new Date(today.setHours(0, 0, 0, 0)),
+          [Op.lte]: new Date(today.setHours(23, 59, 59, 999))
+        }
+      };
+    } else if (range === 'weekly') {
+      // Get this week's expenses (from the last 7 days)
+      const weekStart = new Date(today.setDate(today.getDate() - today.getDay())); // Start of this week (Sunday)
+      dateCondition = {
+        createdAt: {
+          [Op.gte]: weekStart,
+          [Op.lte]: new Date()
+        }
+      };
+    } else if (range === 'monthly') {
+      // Get this month's expenses (from the start of this month)
+      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1); // Start of this month
+      dateCondition = {
+        createdAt: {
+          [Op.gte]: monthStart,
+          [Op.lte]: new Date()
+        }
+      };
+    } else {
+      return res.status(400).json({ message: 'Invalid date range' });
+    }
+
+    const expenses = await Expense.findAll({
+      where: {
+        userId,
+        ...dateCondition
+      },
+      transaction: t,
+    });
+
+    const totalIncome = expenses.filter(exp => exp.category === 'income').reduce((sum, exp) => sum + exp.amount, 0);
+    const totalExpenses = expenses.filter(exp => exp.category !== 'income').reduce((sum, exp) => sum + exp.amount, 0);
+
+    await t.commit();
+    
+    res.status(200).json({ expenses, totalIncome, totalExpenses });
+  } catch (error) {
+    await t.rollback();
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching expenses', error: error.message });
   }
 };

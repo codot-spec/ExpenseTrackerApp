@@ -33,14 +33,21 @@
     <button type="submit">Add Expense</button>
   </form>
   <div id="message"></div>
-  <button id="rzp-button1">Buy Premium</button>
-<h1>
+  <button id="rzp-button1">Buy Premium</button><br><br>
+  <div id="filter-options"> <h2>Filter Expenses</h2>
+    <button onclick="filterExpenses('daily')">Daily</button>
+    <button onclick="filterExpenses('weekly')">Weekly</button>
+    <button onclick="filterExpenses('monthly')">Monthly</button>
+    <h1></div>
+ 
   Expenses
 </h1>
 
   <ul id="expenseList"></ul>
-
+  <div id="total-info"></div>
+  <button onclick="download()" id="downloadexpense">Download File</button>
   <ul id="leaderboard"></ul> 
+  
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.1/axios.min.js"></script>
   <script src="./expense.js"></script>

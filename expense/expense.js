@@ -30,6 +30,41 @@ function handleFormSubmit(event) {
     event.target.reset(); // Reset form after submission
     delete event.target.dataset.expenseId; // Clear expenseId
   }
+
+  function filterExpenses(range) {
+    const token = localStorage.getItem('token');
+    
+    // Fetch expenses by selected date range (daily, weekly, monthly)
+    axios.get(`http://localhost:3000/expenses/date-range?range=${range}`, {
+      headers: { "Authorization": token }
+    })
+    .then(response => {
+      const { expenses, totalIncome, totalExpenses } = response.data;
+      
+      // Update the UI with filtered expenses
+      const expenseList = document.getElementById('expenseList');
+      expenseList.innerHTML = '';  // Clear previous list
+  
+      expenses.forEach(expense => {
+        const expenseItem = document.createElement("li");
+        expenseItem.innerHTML = `
+          ${expense.amount} - ${expense.description} - ${expense.category}
+          <button onclick="deleteExpense(${expense.id})">Delete</button>
+          <button onclick="editExpense(${expense.id}, ${expense.amount}, '${expense.description}', '${expense.category}')">Edit</button>
+        `;
+        expenseList.appendChild(expenseItem);
+      });
+  
+      // Display total income and expenses
+      const totalInfo = document.getElementById('total-info');
+      totalInfo.innerHTML = `
+        <p>Total Income: ${totalIncome}</p>
+        <p>Total Expenses: ${totalExpenses}</p>
+      `;
+    })
+    .catch(error => console.log(error));
+  }
+  
   
   function showleaderboard(){
      const inputElement = document.createElement('input');
@@ -71,6 +106,13 @@ function handleFormSubmit(event) {
   if(isPremiumUser){
     showPremiumUserMessage();
     showleaderboard();
+    document.getElementById('filter-options').style.display = 'block';
+    document.getElementById('downloadexpense').style.display = 'block';
+  } else {
+    // Show message for non-premium users
+    document.getElementById('message').innerHTML = "Upgrade to Premium to access these features.";
+    document.getElementById('filter-options').style.display = 'none';
+    document.getElementById('downloadexpense').style.display = 'none';
   }
     //fetch and display expenses
     axios.get("http://localhost:3000/expenses", { headers: { "Authorization":token } })
@@ -80,6 +122,27 @@ function handleFormSubmit(event) {
       .catch(error => console.log(error));
   });
   
+
+  function download(){
+    axios.get('http://localhost:3000/user/download', { headers: {"Authorization" : token} })
+    .then((response) => {
+        if(response.status === 201){
+            //the bcakend is essentially sending a download link
+            //  which if we open in browser, the file would download
+            var a = document.createElement("a");
+            a.href = response.data.fileUrl;
+            a.download = 'myexpense.csv';
+            a.click();
+        } else {
+            throw new Error(response.data.message)
+        }
+    })
+    .catch((err) => {
+        showError(err)
+    });
+}
+
+
   function displayExpenseOnScreen(expense) {
     const expenseList = document.getElementById('expenseList');
     const expenseItem = document.createElement("li");
@@ -153,36 +216,3 @@ rzp1.on('payment.failed', function (response){
     document.getElementById('form').dataset.expenseId = expenseId;
   }
 
-
-// async function showLeaderboard() {
-//   try {
-//     const token = localStorage.getItem('token');
-//     const response = await axios.get('http://localhost:3000/leaderboard', { 
-//       headers: { "Authorization": token } 
-//     });
-
-//     if (response.status === 200) {
-//       const leaderboardData = response.data; 
-
-//       // Clear existing leaderboard content (if any)
-//       const leaderboardContainer = document.getElementById('leaderboard'); 
-//       leaderboardContainer.innerHTML = '';
-
-//       // Create and display leaderboard entries
-//       leaderboardData.forEach(user => {
-//         const leaderboardEntry = document.createElement('div');
-//         leaderboardEntry.textContent = `${user.name}: ${user.totalExpenses}`; 
-//         leaderboardContainer.appendChild(leaderboardEntry);
-//       });
-
-//       // Show the leaderboard container
-//       leaderboardContainer.style.display = 'block'; 
-//     } else {
-//       console.error('Error fetching leaderboard data:', response); 
-//       alert('Failed to fetch leaderboard data.');
-//     }
-//   } catch (error) {
-//     console.error('Error fetching leaderboard data:', error); 
-//     alert('Failed to fetch leaderboard data.');
-//   }
-// }
