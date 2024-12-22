@@ -1,8 +1,9 @@
-
+const AWS = require('aws-sdk');
 
 const { Op } = require('sequelize');
 const Expense = require('../models/expenses');
 const User = require('../models/users')
+const DownloadedContent = require('../models/contentloaded');
 const sequelize = require('../util/database')
 
 exports.addExpense = async (req, res, next ) => {
@@ -124,6 +125,77 @@ exports.deleteExpense = async (req, res, next) => {
     await t.rollback();  // Rollback in case of error
     console.error(error);
     res.status(500).json({ message: 'Error deleting expense', error: error.message });
+  }
+};
+
+
+function uploadToS3(data, filename) {
+  const BUCKET_NAME = process.env.BUCKET_NAME;
+  const IAM_USER_KEY = process.env.IAM_USER_KEY;
+  const IAM_USER_SECRET = process.env.IAM_USER_SECRET;
+
+  const s3bucket = new AWS.S3({
+    accessKeyId: IAM_USER_KEY,
+    secretAccessKey: IAM_USER_SECRET
+  });
+
+  // Ensure that the data is a string (or Buffer) for the Body
+  //const bufferData = Buffer.from(data, 'utf-8');  // Convert string data to Buffer if needed
+
+  const params = {
+    Bucket: BUCKET_NAME,
+    Key: filename,
+    Body: data,  // Body is the content of the file
+    ACL: 'public-read'
+  };
+
+  return new Promise((resolve, reject) =>{
+    s3bucket.upload(params, (err, s3response) => {
+      if (err) {
+        console.log("Something went wrong", err);
+        reject(err);
+      } else {
+       // console.log("Success", s3response);
+       resolve(s3response.Location);
+      }
+    });
+  })
+}
+
+
+exports.downloadExpense = async (req, res, next) => {
+  try{
+    const expenses = await req.user.getExpenses();
+  //console.log(expenses);
+  const stringifiedExpenses = JSON.stringify(expenses);
+  const userId = req.user.id;
+ const filename = `Expense${userId}/${new Date()}.txt` ;
+ const fileUrl = await uploadToS3(stringifiedExpenses, filename);
+ 
+ await DownloadedContent.create({
+  userId: userId,
+  url: fileUrl,
+  filename: filename,
+});
+
+ res.status(200).json({fileUrl, success: true});
+}
+catch(err){
+  console.log(err)
+  res.status(500).json({fileUrl: '',success: false, err: err})
+}
+}
+
+exports.getDownloadedContent = async (req, res, next) => {
+  try {
+    const downloadedContents = await DownloadedContent.findAll({
+      where: { userId: req.user.id },
+    });
+
+    res.status(200).json(downloadedContents);  // Return the list of downloaded content URLs
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching downloaded content', error: err.message });
   }
 };
 

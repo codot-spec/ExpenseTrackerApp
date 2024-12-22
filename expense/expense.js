@@ -106,6 +106,7 @@ function handleFormSubmit(event) {
   if(isPremiumUser){
     showPremiumUserMessage();
     showleaderboard();
+    displayDownloadedContent();
     document.getElementById('filter-options').style.display = 'block';
     document.getElementById('downloadexpense').style.display = 'block';
   } else {
@@ -123,25 +124,54 @@ function handleFormSubmit(event) {
   });
   
 
-  function download(){
-    axios.get('http://localhost:3000/user/download', { headers: {"Authorization" : token} })
-    .then((response) => {
-        if(response.status === 201){
-            //the bcakend is essentially sending a download link
-            //  which if we open in browser, the file would download
-            var a = document.createElement("a");
-            a.href = response.data.fileUrl;
-            a.download = 'myexpense.csv';
-            a.click();
+  function download() {
+    const downloadButton = document.getElementById('downloadexpense');
+  
+    downloadButton.onclick = async () => {
+      const token = localStorage.getItem('token');
+      try {
+        const response = await axios.get('http://localhost:3000/expenses/download', {
+          headers: { "Authorization": token }
+        });
+  
+        if (response.status === 200 && response.data.success) {
+          // The backend sends the download link
+          const fileUrl = response.data.fileUrl;
+  
+          var a = document.createElement("a");
+          a.href = fileUrl;
+          a.download = 'Expense.csv'; // Change the filename as needed
+          a.click();
         } else {
-            throw new Error(response.data.message)
+          throw new Error(response.data.message || 'Error downloading file');
         }
+      } catch (err) {
+        showError(err);
+      }
+    };
+  }
+  
+  function displayDownloadedContent() {
+    const token = localStorage.getItem('token');
+    
+    axios.get('http://localhost:3000/expenses/downloaded-content', {
+      headers: { "Authorization": token }
     })
-    .catch((err) => {
-        showError(err)
-    });
-}
+      .then(response => {
+        const downloadedList = document.getElementById('downloadedList');
+        downloadedList.innerHTML = '';  // Clear existing content
+  
+        response.data.forEach(content => {
+          const listItem = document.createElement('li');
+          listItem.innerHTML = 
+            `<a href="${content.url}" target="_blank">${content.filename}</a>`;  // Link to download file
+          downloadedList.appendChild(listItem);
+        });
+      })
+      .catch(error => console.log(error));
+  }
 
+  
 
   function displayExpenseOnScreen(expense) {
     const expenseList = document.getElementById('expenseList');

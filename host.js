@@ -7,6 +7,7 @@ const User = require('./models/users');
 const Expense = require('./models/expenses');
 const Order = require('./models/orders')
 const Forgotpassword = require('./models/forgotpassword');
+const DownloadedContent = require('./models/contentloaded');
 
 const userRoutes = require('./routes/user');  // Importing user routes
 const expenseRoutes = require('./routes/expenses');
@@ -30,6 +31,8 @@ app.use('/purchase',purchaseRoutes);
 app.use('/premium', premiumFeatureRoutes)
 app.use('/password', resetPasswordRoutes);
 
+
+
 Expense.belongsTo(User, {contraints: true, onDelete: 'CASCADE'});
 User.hasMany(Expense);
 
@@ -38,6 +41,9 @@ Order.belongsTo(User);
 
 User.hasMany(Forgotpassword);
 Forgotpassword.belongsTo(User);
+
+User.hasMany(DownloadedContent);
+DownloadedContent.belongsTo(User);
 
 sequelize.sync()
   .then(() => {
