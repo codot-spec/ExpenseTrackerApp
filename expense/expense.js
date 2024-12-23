@@ -15,14 +15,17 @@ function handleFormSubmit(event) {
       axios.put(`http://localhost:3000/expenses/${expenseId}`,
         expenseDetails,  { headers: { "Authorization":token } })
         .then(response => {
-          updateExpenseOnScreen(response.data);
+         // updateExpenseOnScreen(response.data);
+          reloadExpenses();
         })
         .catch(error => console.log(error));
     } else {
       // If adding a new expense
-      axios.post("http://localhost:3000/expenses", expenseDetails,  { headers: { "Authorization":token } })
+      axios.post("http://localhost:3000/expenses", 
+        expenseDetails, 
+         { headers: { "Authorization":token } })
         .then(response => {
-          displayExpenseOnScreen(response.data);
+          reloadExpenses();
         })
         .catch(error => console.log(error));
     }
@@ -31,53 +34,35 @@ function handleFormSubmit(event) {
     delete event.target.dataset.expenseId; // Clear expenseId
   }
 
-  function filterExpenses(range) {
+  function reloadExpenses() {
     const token = localStorage.getItem('token');
+    const decodedToken = parseJwt(token);
+    const isPremiumUser = decodedToken.isPremium;
     
-    // Fetch expenses by selected date range (daily, weekly, monthly)
-    axios.get(`http://localhost:3000/expenses/date-range?range=${range}`, {
-      headers: { "Authorization": token }
-    })
-    .then(response => {
-      const { expenses, totalIncome, totalExpenses } = response.data;
-      
-      // Update the UI with filtered expenses
-      const expenseList = document.getElementById('expenseList');
-      expenseList.innerHTML = '';  // Clear previous list
-  
-      expenses.forEach(expense => {
-        const expenseItem = document.createElement("li");
-        expenseItem.innerHTML = `
-          ${expense.amount} - ${expense.description} - ${expense.category}
-          <button onclick="deleteExpense(${expense.id})">Delete</button>
-          <button onclick="editExpense(${expense.id}, ${expense.amount}, '${expense.description}', '${expense.category}')">Edit</button>
-        `;
-        expenseList.appendChild(expenseItem);
-      });
-  
-      // Display total income and expenses
-      const totalInfo = document.getElementById('total-info');
-      totalInfo.innerHTML = `
-        <p>Total Income: ${totalIncome}</p>
-        <p>Total Expenses: ${totalExpenses}</p>
-      `;
-    })
-    .catch(error => console.log(error));
-  }
-  
+    let rowsPerPage = parseInt(localStorage.getItem('rowsPerPage'),10) || 2;  // Get rows per page from localStorage (default is 3)
+    let currentPage = 1;  // Default to page 1 after submission
+    
+    if (isPremiumUser) {
+      filterExpenses('monthly', currentPage, rowsPerPage); // Reload premium expenses
+    } else {
+      fetchAndDisplayExpenses(currentPage, rowsPerPage); // Reload non-premium expenses
+    }
+    }
+    
   
   
   function showleaderboard(){
+    if (document.querySelector('input[type="button"]')) return;  //prevent duplicacy of button
      const inputElement = document.createElement('input');
      inputElement.type = "button";
      inputElement.value = "Show Leaderboard";
      inputElement.onclick = async ()=> {
       const token = localStorage.getItem('token');
-      const leaderboardArray = await axios.get("http://localhost:3000/premium/showLeaderBoard",{headers: { "Authorization" : token }})
+      const leaderboardArray = await axios.get("http://localhost:3000/premium/showLeaderBoard", {headers: { "Authorization" : token }})
       var leaderBoardEle = document.getElementById('leaderboard');
       leaderBoardEle.innerHTML += '<h1>Leader Board</h1>'
       leaderboardArray.data.forEach((userDetails) =>{
-        leaderBoardEle.innerHTML += `<li>Name - ${userDetails.name} Total Expense -${userDetails.totalExpenses || 0}</li>`
+        leaderBoardEle.innerHTML += `<li>Name - ${userDetails.name} Total Expense -${parseInt(userDetails.totalExpenses,10) || 0}</li>`
       })
      }
      document.getElementById('message').appendChild(inputElement);
@@ -99,31 +84,6 @@ function handleFormSubmit(event) {
     return JSON.parse(jsonPayload);
 }
 
-  // window.addEventListener("DOMContentLoaded", () => {
-  //   const token = localStorage.getItem('token');
-  //   const decodedToken = parseJwt(token);
-  //   console.log(decodedToken)
-  //   const isPremiumUser = decodedToken.isPremium;
-  // if(isPremiumUser){
-  //   showPremiumUserMessage();
-  //   showleaderboard();
-  //   displayDownloadedContent();
-  //   document.getElementById('filter-options').style.display = 'block';
-  //   document.getElementById('downloadexpense').style.display = 'block';
-  // } else {
-  //   // Show message for non-premium users
-  //   document.getElementById('message').innerHTML = "Upgrade to Premium to access these features.";
-  //   document.getElementById('filter-options').style.display = 'none';
-  //   document.getElementById('downloadexpense').style.display = 'none';
-  // }
-  //   //fetch and display expenses
-  //   axios.get("http://localhost:3000/expenses", { headers: { "Authorization":token } })
-  //     .then(response => {
-  //       response.data.forEach(expense => displayExpenseOnScreen(expense));
-  //     })
-  //     .catch(error => console.log(error));
-  // });
-  
 
   function download() {
     const downloadButton = document.getElementById('downloadexpense');
@@ -173,32 +133,21 @@ function handleFormSubmit(event) {
   }
 
   
-
-  // function displayExpenseOnScreen(expense) {
-  //   const expenseList = document.getElementById('expenseList');
-  //   const expenseItem = document.createElement("li");
-  //   expenseItem.setAttribute("data-id", expense.id);
-  //   expenseItem.innerHTML = `
-  //     ${expense.amount} - ${expense.description} - ${expense.category}
-  //     <button onclick="deleteExpense(${expense.id})">Delete</button>
-  //     <button onclick="editExpense(${expense.id}, ${expense.amount}, '${expense.description}', '${expense.category}')">Edit</button>
-  //   `;
-  //   expenseList.appendChild(expenseItem);
-  // }
   
   function deleteExpense(expenseId) {
     const token = localStorage.getItem('token'); // Get the token from localStorage
     axios.delete(`http://localhost:3000/expenses/${expenseId}`,  { headers: { "Authorization":token } })
       .then(() => {
-        removeExpenseFromScreen(expenseId);
+       // removeExpenseFromScreen(expenseId);
+        reloadExpenses();
       })
       .catch(error => console.log(error));
   }
   
-  function removeExpenseFromScreen(expenseId) {
-    const expenseItem = document.querySelector(`li[data-id='${expenseId}']`);
-    expenseItem.remove();
-  }
+  // function removeExpenseFromScreen(expenseId) {
+  //   const expenseItem = document.querySelector(`li[data-id='${expenseId}']`);
+  //   expenseItem.remove();
+  // }
   
 document.getElementById('rzp-button1').onclick = async function (e) {
   const token =localStorage.getItem('token');
@@ -217,6 +166,7 @@ var options = {
     alert('You are a premium user Now')
     document.getElementById('rzp-button1').style.visibility="hidden"
     document.getElementById('message').innerHTML="You Are a Premium User"
+    document.getElementById('downloadexpense').style.display = 'block';
     localStorage.setItem('token',  res.data.token)
     showleaderboard();
   }
@@ -231,14 +181,14 @@ rzp1.on('payment.failed', function (response){
 }
 
 
-  function updateExpenseOnScreen(expense) {
-    const expenseItem = document.querySelector(`li[data-id='${expense.id}']`);
-    expenseItem.innerHTML = `
-      ${expense.amount} - ${expense.description} - ${expense.category}
-      <button onclick="deleteExpense(${expense.id})">Delete</button>
-      <button onclick="editExpense(${expense.id}, ${expense.amount}, '${expense.description}', '${expense.category}')">Edit</button>
-    `;
-  }
+  // function updateExpenseOnScreen(expense) {
+  //   const expenseItem = document.querySelector(`li[data-id='${expense.id}']`);
+  //   expenseItem.innerHTML = `
+  //     ${expense.amount} - ${expense.description} - ${expense.category}
+  //     <button onclick="deleteExpense(${expense.id})">Delete</button>
+  //     <button onclick="editExpense(${expense.id}, ${expense.amount}, '${expense.description}', '${expense.category}')">Edit</button>
+  //   `;
+  // }
   
   function editExpense(expenseId, amount, description, category) {
     document.getElementById('amount').value = amount;
@@ -247,12 +197,18 @@ rzp1.on('payment.failed', function (response){
     document.getElementById('form').dataset.expenseId = expenseId;
   }
 
+// Store the selected rows per page in localStorage
+document.getElementById('rowsperpage').addEventListener('change', (event) => {
+  const selectedRows = event.target.value; // Get the selected number of rows
+  localStorage.setItem('rowsPerPage', selectedRows); // Store it in localStorage
+  reloadExpenses(); // Reload expenses when rows per page changes
+  });
 
 
 // Fetch and display expenses with pagination
-function fetchAndDisplayExpenses(page = 1) {
+function fetchAndDisplayExpenses(page = 1, rowsPerPage = 2) {
   const token = localStorage.getItem('token');
-  axios.get(`http://localhost:3000/expenses?page=${page}&limit=3`, {
+  axios.get(`http://localhost:3000/expenses?page=${page}&limit=${rowsPerPage}`, {
     headers: { "Authorization": token }
   })
   .then(response => {
@@ -271,23 +227,24 @@ function fetchAndDisplayExpenses(page = 1) {
 
     // Display pagination buttons
     const paginationInfo = document.getElementById('paginationInfo');
-    paginationInfo.innerHTML = `
+    paginationInfo.innerHTML = ` 
       <p>Page ${pagination.currentPage} of ${pagination.totalPages}</p>
-      <button onclick="fetchAndDisplayExpenses(${pagination.currentPage - 1})" ${pagination.currentPage <= 1 ? 'disabled' : ''}>Previous</button>
-      <button onclick="fetchAndDisplayExpenses(${pagination.currentPage + 1})" ${pagination.currentPage >= pagination.totalPages ? 'disabled' : ''}>Next</button>
+      <button onclick="fetchAndDisplayExpenses(${pagination.currentPage - 1}, ${rowsPerPage})" ${pagination.currentPage <= 1 ? 'disabled' : ''}>Previous</button>
+      <button onclick="fetchAndDisplayExpenses(${pagination.currentPage + 1}, ${rowsPerPage})" ${pagination.currentPage >= pagination.totalPages ? 'disabled' : ''}>Next</button>
     `;
   })
   .catch(error => console.log(error));
 }
 
-// Fetch expenses by date range and pagination
-function filterExpenses(range, page = 1) {
+// Update filterExpenses to handle pagination correctly
+function filterExpenses(range, page = 1, rowsPerPage = 2) {
   const token = localStorage.getItem('token');
-  axios.get(`http://localhost:3000/expenses/date-range?range=${range}&page=${page}&limit=3`, {
+  axios.get(`http://localhost:3000/expenses/date-range?range=${range}&page=${page}&limit=${rowsPerPage}`, {
     headers: { "Authorization": token }
   })
   .then(response => {
-    const { expenses, totalIncome, totalExpenses, pagination } = response.data;
+    //const { expenses, totalIncome, totalExpenses, pagination } = response.data;
+    const { expenses, pagination } = response.data;
     const expenseList = document.getElementById('expenseList');
     expenseList.innerHTML = '';  // Clear the previous list
 
@@ -300,18 +257,18 @@ function filterExpenses(range, page = 1) {
     });
 
     // Display total income and expenses
-    const totalInfo = document.getElementById('total-info');
-    totalInfo.innerHTML = `
-      <p>Total Income: ${totalIncome}</p>
-      <p>Total Expenses: ${totalExpenses}</p>
-    `;
+    // const totalInfo = document.getElementById('total-info');
+    // totalInfo.innerHTML = `
+    //   <p>Total Income: ${totalIncome}</p>
+    //   <p>Total Expenses: ${totalExpenses}</p>
+    // `;
 
     // Display pagination buttons
     const paginationInfo = document.getElementById('paginationInfo');
-    paginationInfo.innerHTML = `
+    paginationInfo.innerHTML = ` 
       <p>Page ${pagination.currentPage} of ${pagination.totalPages}</p>
-      <button onclick="filterExpenses('${range}', ${pagination.currentPage - 1})" ${pagination.currentPage <= 1 ? 'disabled' : ''}>Previous</button>
-      <button onclick="filterExpenses('${range}', ${pagination.currentPage + 1})" ${pagination.currentPage >= pagination.totalPages ? 'disabled' : ''}>Next</button>
+      <button onclick="filterExpenses('${range}', ${pagination.currentPage - 1}, ${rowsPerPage})" ${pagination.currentPage <= 1 ? 'disabled' : ''}>Previous</button>
+      <button onclick="filterExpenses('${range}', ${pagination.currentPage + 1}, ${rowsPerPage})" ${pagination.currentPage >= pagination.totalPages ? 'disabled' : ''}>Next</button>
     `;
   })
   .catch(error => console.log(error));
@@ -331,14 +288,18 @@ window.addEventListener("DOMContentLoaded", () => {
     displayDownloadedContent();
     document.getElementById('filter-options').style.display = 'block';
     document.getElementById('downloadexpense').style.display = 'block';
-    filterExpenses('monthly');  // Default filter to monthly expenses
+    let rowsPerPage = parseInt(localStorage.getItem('rowsPerPage'),10) || 2;  // Get rows per page from localStorage (default is 5)
+    let currentPage = 1;  // Start at page 1
+    filterExpenses('monthly', currentPage, rowsPerPage);  // Call filterExpenses with the default 'monthly' filter
   } else {
     document.getElementById('message').innerHTML = "Upgrade to Premium to access these features.";
     document.getElementById('filter-options').style.display = 'none';
     document.getElementById('downloadexpense').style.display = 'none';
-    fetchAndDisplayExpenses();  // Fetch paginated expenses for non-premium users
-  }
+    let rowsPerPage = parseInt(localStorage.getItem('rowsPerPage'),10) || 2;  // Get rows per page from localStorage (default is 5)
+  let currentPage = 1;  // Start at page 1
+  fetchAndDisplayExpenses(currentPage, rowsPerPage);  // Fetch and display expenses with pagination
+}
 });
 
 // Fetch and display expenses
-fetchAndDisplayExpenses();  // Initial call to fetch expenses
+reloadExpenses();
