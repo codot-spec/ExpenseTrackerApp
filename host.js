@@ -1,6 +1,9 @@
 const express = require('express');
 //const bodyParser = require('body-parser');
-
+const path = require('path');
+const fs = require('fs');
+const morgan = require('morgan');
+const helmet = require('helmet');
 const cors = require('cors');
 const sequelize = require('./util/database');
 const User = require('./models/users');
@@ -21,9 +24,15 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-app.use(cors());  // Allows cross-origin requests
+const accessLogStream = fs.createWriteStream(
+  path.join(__dirname,'access.log'),
+  { flags: 'a'});
 
+app.use(cors());  // Allows cross-origin requests
+app.use(helmet());
+app.use(morgan('combined',{stream: accessLogStream}));
 app.use(express.json());
+
 
 app.use('/user', userRoutes);  // Use /user routes for user operations
 app.use('/expenses',expenseRoutes);
