@@ -66,6 +66,7 @@ function handleFormSubmit(event) {
   }
   
   
+  
   function showleaderboard(){
      const inputElement = document.createElement('input');
      inputElement.type = "button";
@@ -98,30 +99,30 @@ function handleFormSubmit(event) {
     return JSON.parse(jsonPayload);
 }
 
-  window.addEventListener("DOMContentLoaded", () => {
-    const token = localStorage.getItem('token');
-    const decodedToken = parseJwt(token);
-    console.log(decodedToken)
-    const isPremiumUser = decodedToken.isPremium;
-  if(isPremiumUser){
-    showPremiumUserMessage();
-    showleaderboard();
-    displayDownloadedContent();
-    document.getElementById('filter-options').style.display = 'block';
-    document.getElementById('downloadexpense').style.display = 'block';
-  } else {
-    // Show message for non-premium users
-    document.getElementById('message').innerHTML = "Upgrade to Premium to access these features.";
-    document.getElementById('filter-options').style.display = 'none';
-    document.getElementById('downloadexpense').style.display = 'none';
-  }
-    //fetch and display expenses
-    axios.get("http://localhost:3000/expenses", { headers: { "Authorization":token } })
-      .then(response => {
-        response.data.forEach(expense => displayExpenseOnScreen(expense));
-      })
-      .catch(error => console.log(error));
-  });
+  // window.addEventListener("DOMContentLoaded", () => {
+  //   const token = localStorage.getItem('token');
+  //   const decodedToken = parseJwt(token);
+  //   console.log(decodedToken)
+  //   const isPremiumUser = decodedToken.isPremium;
+  // if(isPremiumUser){
+  //   showPremiumUserMessage();
+  //   showleaderboard();
+  //   displayDownloadedContent();
+  //   document.getElementById('filter-options').style.display = 'block';
+  //   document.getElementById('downloadexpense').style.display = 'block';
+  // } else {
+  //   // Show message for non-premium users
+  //   document.getElementById('message').innerHTML = "Upgrade to Premium to access these features.";
+  //   document.getElementById('filter-options').style.display = 'none';
+  //   document.getElementById('downloadexpense').style.display = 'none';
+  // }
+  //   //fetch and display expenses
+  //   axios.get("http://localhost:3000/expenses", { headers: { "Authorization":token } })
+  //     .then(response => {
+  //       response.data.forEach(expense => displayExpenseOnScreen(expense));
+  //     })
+  //     .catch(error => console.log(error));
+  // });
   
 
   function download() {
@@ -173,17 +174,17 @@ function handleFormSubmit(event) {
 
   
 
-  function displayExpenseOnScreen(expense) {
-    const expenseList = document.getElementById('expenseList');
-    const expenseItem = document.createElement("li");
-    expenseItem.setAttribute("data-id", expense.id);
-    expenseItem.innerHTML = `
-      ${expense.amount} - ${expense.description} - ${expense.category}
-      <button onclick="deleteExpense(${expense.id})">Delete</button>
-      <button onclick="editExpense(${expense.id}, ${expense.amount}, '${expense.description}', '${expense.category}')">Edit</button>
-    `;
-    expenseList.appendChild(expenseItem);
-  }
+  // function displayExpenseOnScreen(expense) {
+  //   const expenseList = document.getElementById('expenseList');
+  //   const expenseItem = document.createElement("li");
+  //   expenseItem.setAttribute("data-id", expense.id);
+  //   expenseItem.innerHTML = `
+  //     ${expense.amount} - ${expense.description} - ${expense.category}
+  //     <button onclick="deleteExpense(${expense.id})">Delete</button>
+  //     <button onclick="editExpense(${expense.id}, ${expense.amount}, '${expense.description}', '${expense.category}')">Edit</button>
+  //   `;
+  //   expenseList.appendChild(expenseItem);
+  // }
   
   function deleteExpense(expenseId) {
     const token = localStorage.getItem('token'); // Get the token from localStorage
@@ -246,3 +247,98 @@ rzp1.on('payment.failed', function (response){
     document.getElementById('form').dataset.expenseId = expenseId;
   }
 
+
+
+// Fetch and display expenses with pagination
+function fetchAndDisplayExpenses(page = 1) {
+  const token = localStorage.getItem('token');
+  axios.get(`http://localhost:3000/expenses?page=${page}&limit=3`, {
+    headers: { "Authorization": token }
+  })
+  .then(response => {
+    const { expenses, pagination } = response.data;
+    const expenseList = document.getElementById('expenseList');
+    expenseList.innerHTML = '';  // Clear the previous list
+
+    expenses.forEach(expense => {
+      const expenseItem = document.createElement("li");
+      expenseItem.setAttribute("data-id", expense.id);
+      expenseItem.innerHTML = `${expense.amount} - ${expense.description} - ${expense.category}
+        <button onclick="deleteExpense(${expense.id})">Delete</button>
+        <button onclick="editExpense(${expense.id}, ${expense.amount}, '${expense.description}', '${expense.category}')">Edit</button>`;
+      expenseList.appendChild(expenseItem);
+    });
+
+    // Display pagination buttons
+    const paginationInfo = document.getElementById('paginationInfo');
+    paginationInfo.innerHTML = `
+      <p>Page ${pagination.currentPage} of ${pagination.totalPages}</p>
+      <button onclick="fetchAndDisplayExpenses(${pagination.currentPage - 1})" ${pagination.currentPage <= 1 ? 'disabled' : ''}>Previous</button>
+      <button onclick="fetchAndDisplayExpenses(${pagination.currentPage + 1})" ${pagination.currentPage >= pagination.totalPages ? 'disabled' : ''}>Next</button>
+    `;
+  })
+  .catch(error => console.log(error));
+}
+
+// Fetch expenses by date range and pagination
+function filterExpenses(range, page = 1) {
+  const token = localStorage.getItem('token');
+  axios.get(`http://localhost:3000/expenses/date-range?range=${range}&page=${page}&limit=3`, {
+    headers: { "Authorization": token }
+  })
+  .then(response => {
+    const { expenses, totalIncome, totalExpenses, pagination } = response.data;
+    const expenseList = document.getElementById('expenseList');
+    expenseList.innerHTML = '';  // Clear the previous list
+
+    expenses.forEach(expense => {
+      const expenseItem = document.createElement("li");
+      expenseItem.innerHTML = `${expense.amount} - ${expense.description} - ${expense.category}
+        <button onclick="deleteExpense(${expense.id})">Delete</button>
+        <button onclick="editExpense(${expense.id}, ${expense.amount}, '${expense.description}', '${expense.category}')">Edit</button>`;
+      expenseList.appendChild(expenseItem);
+    });
+
+    // Display total income and expenses
+    const totalInfo = document.getElementById('total-info');
+    totalInfo.innerHTML = `
+      <p>Total Income: ${totalIncome}</p>
+      <p>Total Expenses: ${totalExpenses}</p>
+    `;
+
+    // Display pagination buttons
+    const paginationInfo = document.getElementById('paginationInfo');
+    paginationInfo.innerHTML = `
+      <p>Page ${pagination.currentPage} of ${pagination.totalPages}</p>
+      <button onclick="filterExpenses('${range}', ${pagination.currentPage - 1})" ${pagination.currentPage <= 1 ? 'disabled' : ''}>Previous</button>
+      <button onclick="filterExpenses('${range}', ${pagination.currentPage + 1})" ${pagination.currentPage >= pagination.totalPages ? 'disabled' : ''}>Next</button>
+    `;
+  })
+  .catch(error => console.log(error));
+}
+
+// Display expenses when the page loads
+window.addEventListener("DOMContentLoaded", () => {
+  const token = localStorage.getItem('token');
+  const decodedToken = parseJwt(token);
+  console.log(decodedToken)
+  const isPremiumUser = decodedToken.isPremium;
+  
+  // Show premium features if the user is a premium member
+  if (isPremiumUser) {
+    showPremiumUserMessage();
+    showleaderboard();
+    displayDownloadedContent();
+    document.getElementById('filter-options').style.display = 'block';
+    document.getElementById('downloadexpense').style.display = 'block';
+    filterExpenses('monthly');  // Default filter to monthly expenses
+  } else {
+    document.getElementById('message').innerHTML = "Upgrade to Premium to access these features.";
+    document.getElementById('filter-options').style.display = 'none';
+    document.getElementById('downloadexpense').style.display = 'none';
+    fetchAndDisplayExpenses();  // Fetch paginated expenses for non-premium users
+  }
+});
+
+// Fetch and display expenses
+fetchAndDisplayExpenses();  // Initial call to fetch expenses

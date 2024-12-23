@@ -32,15 +32,17 @@ exports.addExpense = async (req, res, next ) => {
   }
 };
 
-exports.getExpenses = async (req, res, next) => {
-  try {
-    const expenses = await Expense.findAll({ where: { userId: req.user.id } });
-    res.status(200).json(expenses);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error fetching expenses', error: error.message });
-  }
-};
+// exports.getExpenses = async (req, res, next) => {
+//   try {
+//     const expenses = await Expense.findAll({ where: { userId: req.user.id } });
+//     res.status(200).json(expenses);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Error fetching expenses', error: error.message });
+//   }
+// };
+
+
 
 exports.updateExpense = async (req, res, next) => {
   const expenseId = req.params.expenseId;
@@ -200,18 +202,114 @@ exports.getDownloadedContent = async (req, res, next) => {
 };
 
 
+// exports.getExpensesByDateRange = async (req, res, next) => {
+//   const { range } = req.query;  // Expect 'daily', 'weekly', or 'monthly'
+//   const t = await sequelize.transaction();
+//   const userId = req.user.id;
+
+//   try {
+//     let dateCondition;
+
+//     const today = new Date();
+    
+//     if (range === 'daily') {
+//       // Get today's expenses
+//       dateCondition = {
+//         createdAt: {
+//           [Op.gte]: new Date(today.setHours(0, 0, 0, 0)),
+//           [Op.lte]: new Date(today.setHours(23, 59, 59, 999))
+//         }
+//       };
+//     } else if (range === 'weekly') {
+//       // Get this week's expenses (from the last 7 days)
+//       const weekStart = new Date(today.setDate(today.getDate() - today.getDay())); // Start of this week (Sunday)
+//       dateCondition = {
+//         createdAt: {
+//           [Op.gte]: weekStart,
+//           [Op.lte]: new Date()
+//         }
+//       };
+//     } else if (range === 'monthly') {
+//       // Get this month's expenses (from the start of this month)
+//       const monthStart = new Date(today.getFullYear(), today.getMonth(), 1); // Start of this month
+//       dateCondition = {
+//         createdAt: {
+//           [Op.gte]: monthStart,
+//           [Op.lte]: new Date()
+//         }
+//       };
+//     } else {
+//       return res.status(400).json({ message: 'Invalid date range' });
+//     }
+
+//     const expenses = await Expense.findAll({
+//       where: {
+//         userId,
+//         ...dateCondition
+//       },
+//       transaction: t,
+//     });
+
+//     const totalIncome = expenses.filter(exp => exp.category === 'income').reduce((sum, exp) => sum + exp.amount, 0);
+//     const totalExpenses = expenses.filter(exp => exp.category !== 'income').reduce((sum, exp) => sum + exp.amount, 0);
+
+//     await t.commit();
+    
+//     res.status(200).json({ expenses, totalIncome, totalExpenses });
+//   } catch (error) {
+//     await t.rollback();
+//     console.error(error);
+//     res.status(500).json({ message: 'Error fetching expenses', error: error.message });
+//   }
+// };
+
+//backend/controllers/expenses.js
+
+// Fetch expenses with pagination
+exports.getExpenses = async (req, res, next) => {
+  const page = parseInt(req.query.page, 10) || 1; // Default to page 1 if not provided
+const limit = parseInt(req.query.limit, 10) || 3; // Default to limit 10 if not provided
+  try {
+    const offset = (page - 1) * limit;
+    const { count, rows } = await Expense.findAndCountAll({
+      where: { userId: req.user.id },
+      limit: limit,
+      offset: offset
+    });
+
+    // Calculate total pages
+    const totalPages = Math.ceil(count / limit);
+
+    res.status(200).json({ 
+      expenses: rows, 
+      pagination: {
+        totalItems: count,
+        totalPages: totalPages,
+        currentPage: page,
+        itemsPerPage: limit
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching expenses', error: error.message });
+  }
+};
+
+// Fetch expenses by date range with pagination
 exports.getExpensesByDateRange = async (req, res, next) => {
-  const { range } = req.query;  // Expect 'daily', 'weekly', or 'monthly'
+  const { range, page = 1, limit = 3 } = req.query;
+  // Ensure `page` and `limit` are integers, defaulting if invalid
+  const pageNumber = parseInt(page, 10);
+  const limitNumber = parseInt(limit, 10);
+
   const t = await sequelize.transaction();
   const userId = req.user.id;
 
   try {
     let dateCondition;
-
     const today = new Date();
     
     if (range === 'daily') {
-      // Get today's expenses
       dateCondition = {
         createdAt: {
           [Op.gte]: new Date(today.setHours(0, 0, 0, 0)),
@@ -219,8 +317,7 @@ exports.getExpensesByDateRange = async (req, res, next) => {
         }
       };
     } else if (range === 'weekly') {
-      // Get this week's expenses (from the last 7 days)
-      const weekStart = new Date(today.setDate(today.getDate() - today.getDay())); // Start of this week (Sunday)
+      const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
       dateCondition = {
         createdAt: {
           [Op.gte]: weekStart,
@@ -228,8 +325,7 @@ exports.getExpensesByDateRange = async (req, res, next) => {
         }
       };
     } else if (range === 'monthly') {
-      // Get this month's expenses (from the start of this month)
-      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1); // Start of this month
+      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
       dateCondition = {
         createdAt: {
           [Op.gte]: monthStart,
@@ -240,20 +336,35 @@ exports.getExpensesByDateRange = async (req, res, next) => {
       return res.status(400).json({ message: 'Invalid date range' });
     }
 
-    const expenses = await Expense.findAll({
+    const offset = (pageNumber - 1) * limitNumber;
+    const { count, rows } = await Expense.findAndCountAll({
       where: {
         userId,
         ...dateCondition
       },
+      limit: limitNumber,
+      offset: offset,
       transaction: t,
     });
 
-    const totalIncome = expenses.filter(exp => exp.category === 'income').reduce((sum, exp) => sum + exp.amount, 0);
-    const totalExpenses = expenses.filter(exp => exp.category !== 'income').reduce((sum, exp) => sum + exp.amount, 0);
+    const totalIncome = rows.filter(exp => exp.category === 'income').reduce((sum, exp) => sum + exp.amount, 0);
+    const totalExpenses = rows.filter(exp => exp.category !== 'income').reduce((sum, exp) => sum + exp.amount, 0);
+
+    const totalPages = Math.ceil(count / limitNumber);
 
     await t.commit();
     
-    res.status(200).json({ expenses, totalIncome, totalExpenses });
+    res.status(200).json({
+      expenses: rows,
+      totalIncome,
+      totalExpenses,
+      pagination: {
+        totalItems: count,
+        totalPages: totalPages,
+        currentPage: page,
+        itemsPerPage: limit
+      }
+    });
   } catch (error) {
     await t.rollback();
     console.error(error);
