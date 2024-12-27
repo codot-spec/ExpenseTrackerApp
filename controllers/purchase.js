@@ -40,10 +40,7 @@ const purchasepremium =async (req, res) => {
             return res.status(202).json({sucess: true, message: "Transaction Successful", token: userController.generateAccessToken(userId,undefined , true) });
         }).catch((error ) => {
             throw new Error(error)
-        })
-
-        
-                
+        })          
     } catch (err) {
         console.log(err);
         res.status(403).json({ errpr: err, message: 'Sometghing went wrong' })

@@ -12,4 +12,10 @@ router.put('/:expenseId',userauthentication.authenticate, expenseController.upda
 
 router.delete('/:expenseId',userauthentication.authenticate, expenseController.deleteExpense);
 
+router.get('/download',userauthentication.authenticate, expenseController.downloadExpense)
+
+router.get('/downloaded-content',userauthentication.authenticate, expenseController.getDownloadedContent);
+
+router.get('/date-range', userauthentication.authenticate, expenseController.getExpensesByDateRange);
+
 module.exports = router;

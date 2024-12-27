@@ -1,0 +1,83 @@
+/* Reset some default browser styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body and HTML settings */
+html, body {
+    height: 100%;
+    font-family: 'Arial', sans-serif;
+    background-color: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Form container styling */
+form {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Header styling */
+form h1 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Email input field styling */
+input[type="email"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    color: #333;
+    transition: border-color 0.3s ease-in-out;
+}
+
+/* Focus effect for the email input */
+input[type="email"]:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+/* Button styling */
+button {
+    padding: 12px 25px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s ease;
+}
+
+/* Button hover effect */
+button:hover {
+    background-color: #45a049;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 600px) {
+    form {
+        padding: 20px;
+        width: 90%;
+    }
+
+    input[type="email"], button {
+        font-size: 14px;
+        padding: 10px;
+    }
+}

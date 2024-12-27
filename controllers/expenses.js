@@ -57,7 +57,7 @@ exports.updateExpense = async (req, res, next) => {
 
     // Calculate the new total expense
     const oldTotalExpense = Number(req.user.totalExpenses);
-    const newTotalExpense = oldTotalExpense - oldExpense.amount + amount;
+    const newTotalExpense = oldTotalExpense - Number(oldExpense.amount) + Number(amount);
 
     // Update user's total expenses
     await User.update(
@@ -101,7 +101,7 @@ exports.deleteExpense = async (req, res, next) => {
 
     // Calculate the new total expense
     const oldTotalExpense = Number(req.user.totalExpenses);
-    const newTotalExpense = oldTotalExpense - expense.amount;
+    const newTotalExpense = oldTotalExpense - Number(expense.amount);
 
     // Update user's total expenses
     await User.update(
