@@ -15,6 +15,7 @@ const Order = require('./models/orders')
 const Forgotpassword = require('./models/forgotpassword');
 const DownloadedContent = require('./models/contentloaded');
 
+
 const userRoutes = require('./routes/user');  // Importing user routes
 const expenseRoutes = require('./routes/expenses');
 const purchaseRoutes = require('./routes/purchase');
@@ -35,10 +36,9 @@ app.use(morgan('combined',{stream: accessLogStream}));
 app.use(express.json());
 
 
-// Serve static files for resetpassword route
- //app.use('/password', express.static(path.join(__dirname, 'views'))); 
+ 
 
-// // Serve static files for other routes
+ // Serve static files for other routes
 app.use(express.static(path.join(__dirname, 'public')));
 
 

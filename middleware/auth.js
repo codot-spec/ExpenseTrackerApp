@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/users');
 
 const authenticate = (req, res, next) => {
-
     try {
         const token = req.header('Authorization');
         console.log(token);
@@ -19,7 +18,6 @@ const authenticate = (req, res, next) => {
         return res.status(401).json({success: false})
         // error
       }
-
 }
   
 

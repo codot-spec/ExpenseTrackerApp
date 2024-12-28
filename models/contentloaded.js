@@ -1,7 +1,6 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../util/database');
 
-
 const DownloadedContent = sequelize.define('DownloadedContent', {
   id: {
     type: Sequelize.INTEGER,

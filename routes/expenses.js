@@ -4,6 +4,7 @@ const userauthentication = require('../middleware/auth')
 
 const router = express.Router();
 
+
 router.post('/',userauthentication.authenticate, expenseController.addExpense);
 
 router.get('/', userauthentication.authenticate, expenseController.getExpenses);

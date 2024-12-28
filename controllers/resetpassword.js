@@ -55,47 +55,6 @@ const sendPasswordResetEmail = async (email, resetLink) => {
 };
 
 
-// const resetpassword = (req, res) => {
-//    const id =  req.params.id;
-//    Forgotpassword.findOne({ where : { id }}).then(forgotpasswordrequest => {
-//      if(forgotpasswordrequest){
-//        forgotpasswordrequest.update({ active: false});
-//        res.sendFile(path.join(__dirname, '..', 'views', 'resetpassword.html'), (err, data) => {
-//         if (err) {
-//           console.error('Error sending file', err);
-//           return res.status(500).json({ message: 'Error sending file', success: false });
-//         }
-//       });
-//        }
-//    })
-// }
-
-// const resetpassword = (req, res) => {
-//   const id =  req.params.id;
-//   Forgotpassword.findOne({ where : { id }}).then(forgotpasswordrequest => {
-//       if(forgotpasswordrequest){
-//           forgotpasswordrequest.update({ active: false});
-//           res.status(200).send(`<html>
-//                                   <script>
-//                                       function formsubmitted(e){
-//                                           e.preventDefault();
-//                                           console.log('called')
-//                                       }
-//                                   </script>
-
-//                                   <form action="/password/updatepassword/${id}" method="get">
-//                                       <label for="newpassword">Enter New password</label>
-//                                       <input name="newpassword" type="password" required></input>
-//                                       <button>reset password</button>
-//                                   </form>
-//                               </html>`
-//                               )
-//           res.end()
-
-//       }
-//   })
-// }
-
 const resetpassword = (req, res) => {
   const id = req.params.id;
   Forgotpassword.findOne({ where: { id } }).then(forgotpasswordrequest => {

@@ -38,7 +38,7 @@ function handleFormSubmit(event) {
     const decodedToken = parseJwt(token);
     const isPremiumUser = decodedToken.isPremium;
     
-    let rowsPerPage = parseInt(localStorage.getItem('rowsPerPage'),10) || 2;  // Get rows per page from localStorage (default is 3)
+    let rowsPerPage = parseInt(localStorage.getItem('rowsPerPage'),10) || 2;  // Get rows per page from localStorage (default is 2)
     let currentPage = 1;  // Default to page 1 after submission
     
     if (isPremiumUser) {
@@ -208,7 +208,6 @@ function fetchAndDisplayExpenses(page = 1, rowsPerPage = 2) {
         <button onclick="editExpense(${expense.id}, ${expense.amount}, '${expense.description}', '${expense.category}')">Edit</button>`;
       expenseList.appendChild(expenseItem);
     });
-    document.getElementById('downloadexpense').style.display = 'block';
     // Display pagination buttons
     const paginationInfo = document.getElementById('paginationInfo');
     paginationInfo.innerHTML = ` 
@@ -239,7 +238,6 @@ function filterExpenses(range, page = 1, rowsPerPage = 2) {
       expenseList.appendChild(expenseItem);
     });
 
-    document.getElementById('downloadexpense').style.display = 'block';
     // Display pagination buttons
     const paginationInfo = document.getElementById('paginationInfo');
     paginationInfo.innerHTML = ` 
@@ -264,18 +262,19 @@ window.addEventListener("DOMContentLoaded", () => {
     showleaderboard();
      displayDownloadedContent();
     document.getElementById('filter-options').style.display = 'block';
-    //document.getElementById('downloadexpense').style.display = 'block';
-    let rowsPerPage = parseInt(localStorage.getItem('rowsPerPage'),10) || 2;  // Get rows per page from localStorage (default is 5)
+    document.getElementById('downloadexpense').style.display = 'block';
+    let rowsPerPage = parseInt(localStorage.getItem('rowsPerPage'),10) || 2;  // Get rows per page from localStorage (default is 2)
     let currentPage = 1;  // Start at page 1
     filterExpenses('monthly', currentPage, rowsPerPage);  // Call filterExpenses with the default 'monthly' filter
   } else {
     displayDownloadedContent();
     document.getElementById('message').innerHTML = "Upgrade to Premium to access these features.";
     document.getElementById('filter-options').style.display = 'none';
-   // document.getElementById('downloadexpense').style.display = 'block';
-    let rowsPerPage = parseInt(localStorage.getItem('rowsPerPage'),10) || 2;  // Get rows per page from localStorage (default is 5)
+    document.getElementById('downloadexpense').style.display = 'block';
+    let rowsPerPage = parseInt(localStorage.getItem('rowsPerPage'),10) || 2;  // Get rows per page from localStorage (default is 2)
   let currentPage = 1;  // Start at page 1
   fetchAndDisplayExpenses(currentPage, rowsPerPage);  // Fetch and display expenses with pagination
 }
 });
 
+reloadExpenses();

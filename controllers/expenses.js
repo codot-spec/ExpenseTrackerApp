@@ -194,7 +194,7 @@ exports.getDownloadedContent = async (req, res, next) => {
 // Fetch expenses with pagination
 exports.getExpenses = async (req, res, next) => {
   const page = parseInt(req.query.page, 10) || 1; // Default to page 1 if not provided
-const limit = parseInt(req.query.limit, 10) || 2; // Default to limit 10 if not provided
+const limit = parseInt(req.query.limit, 10) || 2; // Default to limit 2 if not provided
   try {
     const offset = (page - 1) * limit;
     const { count, rows } = await Expense.findAndCountAll({
@@ -273,17 +273,12 @@ exports.getExpensesByDateRange = async (req, res, next) => {
       transaction: t,
     });
 
-    //const totalIncome = rows.filter(exp => exp.category === 'income').reduce((sum, exp) => sum + exp.amount, 0);
-    //const totalExpenses = rows.filter(exp => exp.category !== 'income').reduce((sum, exp) => sum + exp.amount, 0);
-
     const totalPages = Math.ceil(count / limitNumber);
 
     await t.commit();
     
     res.status(200).json({
       expenses: rows,
-      // totalIncome,
-      // totalExpenses,
       pagination: {
         totalItems: count,
         totalPages: totalPages,
