@@ -33,7 +33,7 @@ exports.signup = async (req, res ) => {
 
 // Generate JWT token (with isPremium field included)
 exports.generateAccessToken = (id, name, isPremium) => {
-  return jwt.sign({ userId: id, name: name, isPremium }, 'secretkey');
+  return jwt.sign({ userId: id, name: name, isPremium }, process.env.TOKEN_SECRET);
 };
 
 exports.login = async (req, res, next) => {
