@@ -84,32 +84,6 @@ function handleFormSubmit(event) {
 }
 
 
-  function download() {
-    const downloadButton = document.getElementById('downloadexpense');
-  
-    downloadButton.onclick = async () => {
-      const token = localStorage.getItem('token');
-      try {
-        const response = await axios.get('http://localhost:3000/expenses/download', {
-          headers: { "Authorization": token }
-        });
-  
-        if (response.status === 200 && response.data.success) {
-          // The backend sends the download link
-          const fileUrl = response.data.fileUrl;
-  
-          var a = document.createElement("a");
-          a.href = fileUrl;
-          a.download = 'Expense.csv'; // Change the filename as needed
-          a.click();
-        } else {
-          throw new Error(response.data.message || 'Error downloading file');
-        }
-      } catch (err) {
-        showError(err);
-      }
-    };
-  }
   
   function displayDownloadedContent() {
     const token = localStorage.getItem('token');
@@ -275,6 +249,40 @@ window.addEventListener("DOMContentLoaded", () => {
   let currentPage = 1;  // Start at page 1
   fetchAndDisplayExpenses(currentPage, rowsPerPage);  // Fetch and display expenses with pagination
 }
+
+document.addEventListener('click', async (event) => {
+  if (event.target.id === 'downloadexpense') {
+      const token = localStorage.getItem('token');
+      try {
+        const response = await axios.get('http://localhost:3000/expenses/download', {
+          headers: { "Authorization": token }
+        });
+  
+        if (response.status === 200 && response.data.success) {
+          // The backend sends the download link
+          const fileUrl = response.data.fileUrl;
+          window.open(fileUrl);
+          // var a = document.createElement("a");
+          // a.href = fileUrl;
+          // a.download = 'Expense.csv'; // Change the filename as needed
+          // a.click();
+        } else {
+          throw new Error(response.data.message || 'Error downloading file');
+        }
+      } catch (err) {
+        showError(err);
+      }
+  }
+});
 });
 
 reloadExpenses();
+
+function profile(){
+  window.location.href = "../profile/index.html";
+}
+
+function logout() {
+  localStorage.clear();
+  window.location.href = "http://localhost:3000";
+}

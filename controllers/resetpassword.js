@@ -63,48 +63,72 @@ const resetpassword = (req, res) => {
       res.status(200).send(`
         <html>
           <head>
-            <style>
-              body {
-                font-family: sans-serif;
-                margin: 0;
-                padding: 20px;
-              }
-              form {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-              }
-              label {
-                font-weight: bold;
-              }
-              input[type="password"] {
-                padding: 5px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-              }
-              button {
-                background-color: #4CAF50;
-                color: white;
-                padding: 5px 10px;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-              }
-            </style>
-          </head>
-         <script>
-           function formsubmitted(e){
+          <style>
+           body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 20px;
+      }
+
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      label {
+        font-weight: bold;
+      }
+
+      input[type="password"] {
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 100%; /* Ensure input takes full width */
+      }
+
+      button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 5px 10px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%; /* Make button full width on smaller screens */
+      }
+
+      /* Mobile-friendly adjustments */
+      @media (max-width: 600px) {
+        body {
+          padding: 10px; /* Adjust body padding for smaller screens */
+        }
+
+        form {
+          gap: 15px; /* Increase the gap between form elements on small screens */
+        }
+
+        input[type="password"] {
+          padding: 10px; /* Increase padding inside the password field */
+        }
+
+        button {
+          padding: 10px 15px; /* Adjust button padding for better usability */
+        }
+      }
+    </style>
+    </head>
+    <script>
+     function formsubmitted(e){
                    e.preventDefault();
                   console.log('called')
                        }
-                           </script>
-
-                                   <form action="/password/updatepassword/${id}" method="get">
-                                       <label for="newpassword">Enter New password</label>
-                                       <input name="newpassword" type="password" required></input>
-                                       <button>reset password</button>
-                                   </form>
-                               </html>
+     </script>
+     <form action="/password/updatepassword/${id}" method="get">
+     <label for="newpassword">Enter New password</label>
+     <input name="newpassword" type="password" required></input>
+     <button>reset password</button>
+     </form>
+     </html>
       `);
       res.end();
     }

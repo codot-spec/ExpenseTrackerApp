@@ -12,6 +12,7 @@
 <body style="margin: 0">
   <header>
     <h1>Expense Tracker</h1>
+    <button id="profile" onclick="profile()">Profile</button>
   </header>
   <form id="form" onsubmit="handleFormSubmit(event)">
     <div class="form-group">
@@ -61,7 +62,7 @@
   <ul id="downloadedList"></ul>
 
   <ul id="leaderboard"></ul> 
-  
+  <button onclick="logout()">Logout</button>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.8/axios.min.js"></script>
   <script src="./expense.js"></script>

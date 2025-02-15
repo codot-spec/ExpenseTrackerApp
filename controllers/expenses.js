@@ -120,6 +120,7 @@ exports.deleteExpense = async (req, res, next) => {
 };
 
 
+
 function uploadToS3(data, filename) {
   const BUCKET_NAME = process.env.BUCKET_NAME;
   const IAM_USER_KEY = process.env.IAM_USER_KEY;
@@ -130,28 +131,64 @@ function uploadToS3(data, filename) {
     secretAccessKey: IAM_USER_SECRET
   });
 
-  // Ensure that the data is a string (or Buffer) for the Body
-  //const bufferData = Buffer.from(data, 'utf-8');  // Convert string data to Buffer if needed
-
   const params = {
     Bucket: BUCKET_NAME,
-    Key: filename,
-    Body: data,  // Body is the content of the file
-    ACL: 'public-read'
+    Key: filename,  // Ensure filename is passed correctly
+    Body: data,     // Body is the file content
+    ACL: 'public-read',
+    ContentType: 'text/csv'  // You can set the content type according to your file
   };
 
-  return new Promise((resolve, reject) =>{
+  return new Promise((resolve, reject) => {
     s3bucket.upload(params, (err, s3response) => {
       if (err) {
         console.log("Something went wrong", err);
         reject(err);
       } else {
-       // console.log("Success", s3response);
-       resolve(s3response.Location);
+        resolve(s3response.Location);  // Return the S3 URL
       }
     });
-  })
+  });
 }
+
+// Log Job Application
+exports.logApplication = async (req, res, next) => {
+  const t = await sequelize.transaction();
+  const { jobTitle, company, status, note, dateApplied } = req.body;
+  const imageFile = req.file;  // Assuming multer is being used for file uploads
+
+  try {
+    // Validate file type (optional but good practice)
+    if (!imageFile || !imageFile.mimetype.startsWith('image/')) {
+      return res.status(400).json({ message: 'Invalid file type. Only image files are allowed.' });
+    }
+
+    // Generate a unique filename (e.g., using the current timestamp or a UUID)
+    const filename = `job-application/${Date.now()}-${imageFile.originalname}`;
+
+    // Upload image to S3
+    const uploadedImageUrl = await uploadToS3(imageFile.buffer, filename);
+
+    // Create new application in the database
+    const application = await Application.create({
+      userId: req.user.id,
+      jobTitle,
+      company,
+      status,
+      note,
+      dateApplied,
+      attachment: uploadedImageUrl
+    }, { transaction: t });
+
+    await t.commit();
+    res.status(201).json(application); // Respond with the created application
+  } catch (error) {
+    await t.rollback();
+    console.error("Error logging application:", error);
+    res.status(500).json({ message: 'Error logging application', error });
+  }
+};
+
 
 
 exports.downloadExpense = async (req, res, next) => {
@@ -161,7 +198,7 @@ exports.downloadExpense = async (req, res, next) => {
   const stringifiedExpenses = JSON.stringify(expenses);
   const userId = req.user.id;
  const filename = `Expense${userId}/${new Date()}.txt` ;
- const fileUrl = await uploadToS3(stringifiedExpenses, filename);
+ const fileUrl = await uploadToS3(stringifiedExpenses, filename,'text/plain');
  
  await DownloadedContent.create({
   userId: userId,

@@ -35,11 +35,14 @@ app.use(cors());  // Allows cross-origin requests
 app.use(morgan('combined',{stream: accessLogStream}));
 app.use(express.json());
 
-
- 
+// Route to serve login.html from the 'login' folder
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login','login.html'));  // Serve 'login.html' from 'public/login' folder
+});
 
  // Serve static files for other routes
 app.use(express.static(path.join(__dirname, 'public')));
+
 
 
 app.use('/user', userRoutes);  // Use /user routes for user operations

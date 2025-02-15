@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <header>
+        <h1>Profile</h1>
+        <button id="logoutBtn" onclick="logout()">Logout</button>
+    </header>
+  <div id="profile">
+    <h2>User Profile</h2>
+    <p>Name: <span id="profileName"></span></p>
+    <p>Email: <span id="profileEmail"></span></p>
+    <p>Password: <span id="profilePassword"></span></p>
+
+
+    <button id="editButton">Edit</button>
+    <button id="deleteButton">Delete</button>
+  </div>
+
+  <div class="links">
+    <a href="/expense/expense.html" class="expenses-link">Go to Expenses</a>
+  </div>
+</div>
+
+  <!-- Edit Form -->
+  <div id="editForm" style="display: none;">
+    <h2>Edit Profile</h2>
+    <form id="form" onsubmit="handleFormSubmit(event)">
+      <label for="editName">Name:</label>
+      <input type="text" id="editName" name="name" placeholder="Name" required>
+      <label for="editEmail">Email:</label>
+      <input type="email" id="editEmail" name="email" placeholder="Email" required>
+      <label for="editPassword">Password:</label>
+      <input type="password" id="editPassword" name="password" placeholder="Password" required>
+      <button type="submit">Save Changes</button>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="./index.js"></script> 
+</body>
+</html>

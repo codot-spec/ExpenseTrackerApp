@@ -59,4 +59,25 @@ body {
     margin-bottom: 10px; 
   }
 
- 
+ /* Mobile responsiveness */
+@media (max-width: 600px) {
+  form {
+      width: 100%;  /* Full width on smaller screens */
+      padding: 15px; /* Adjust padding */
+  }
+
+  button {
+      padding: 10px;
+      width: 100%; /* Make button full width */
+  }
+
+  label {
+      font-size: 14px; /* Adjust font size for small screens */
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+      font-size: 14px; /* Adjust input font size for small screens */
+  }
+}
